@@ -4,12 +4,12 @@
    "description": "a RESTful API that allows users to create, retrieve, update, and delete data on a PostgreSQL database",
    "main": "src/app.ts",
    "scripts": {
-      "start": "ts-node src/app.ts",
-      "dev": "nodemon -w *.ts src/app.ts",
+      "start": "node ormconfig-setup.ts && ts-node src/app.ts",
+      "dev": "node ormconfig-setup.ts && nodemon -w *.ts src/app.ts",
       "lint": "eslint . --ext .ts",
-      "test": "jest",
+      "test": "node ormconfig-setup.ts && jest",
       "typeorm": "typeorm-ts-node-commonjs",
-      "env": "node ormconfig.ts"
+      "env": "node ormconfig-setup.ts"
    },
    "author": "Susan M Lister",
    "license": "ISC",

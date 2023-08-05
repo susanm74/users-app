@@ -7,7 +7,7 @@ a RESTful API that allows users to create, retrieve, update, and delete data in 
 * Node.js
 * Express.js
 * TypeORM
-* TODO
+* PostgreSQL
 
 ## Project Tooling (Optional)
 
@@ -15,14 +15,19 @@ a RESTful API that allows users to create, retrieve, update, and delete data in 
 * GitHub
 * Postman or Swagger
 
-## Steps to run this project:
+## Steps to run the app:
 
 * Clone the repo
 * Navigate to the `users-app` directory
 * Run `npm install` command
-* Configure database settings inside `.env` file
-* Run `npm run env` command
-* Run `npm run start` command
+* Edit the database settings inside the `.env` file - ex. usr: test, pwd: test, db: app_db
+* Run `npm run start` or `npm run dev` command
+* Navigate to http://localhost:8080/api-docs/ for usage, options, and a list of available APIs
+
+## Steps to test the app:
+
+* Edit the database settings inside the `.env` file - ex. usr: test, pwd: test, db: test_db
+* Run `npm run test` command
 * Navigate to http://localhost:8080/api-docs/ for usage, options, and a list of available APIs
 
 ## Author

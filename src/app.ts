@@ -155,10 +155,6 @@ app.patch('/users/update', authenticateToken, validate(updateValidations), async
 // delete
 app.delete('/users/delete', authenticateToken, validate(deleteValidations), async (req, res) => {
   const email = req.body.email
-  // const user = await AppDataSource.manager.findOneBy(User, { email: email });
-  // if(!user){
-  //   return res.status(401).send({ error: 'Email incorrect, please try again.'});
-  // }
   try{
     await AppDataSource.getRepository(User).delete({ email: email });
     return res.status(200).json({ message: `User ${email} successfully deleted`});
@@ -173,7 +169,6 @@ app.delete('/users/delete', authenticateToken, validate(deleteValidations), asyn
 app.post('/login', authenticateToken, async (req, res) => {
   const email = req.body.email;
   const password = req.body.password
-
   const user = await AppDataSource.manager.findOneBy(User, { email: email });
   if(!user){
     return res.status(401).send({ error: 'Email incorrect, please try again.'});
@@ -200,6 +195,8 @@ AppDataSource.initialize()
 
 // app initialization //
 
-module.exports = app.listen(port, () => {
+app.listen(port, () => {
   return console.log(`Express is listening at http://localhost:${port}`);
 });
+
+export default app;

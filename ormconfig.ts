@@ -3,10 +3,6 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const username = process.env.USERNAME;
-const password = process.env.PASSWORD;
-const database = process.env.DATABASE;
-
 const config = {
   "type": "postgres",
   "host": "localhost",

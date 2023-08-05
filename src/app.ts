@@ -4,12 +4,18 @@ import { AppDataSource } from "./data-source";
 import { User } from "./entity/User";
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import bcrypt from 'bcrypt';
+// import expressOasGenerator from 'express-oas-generator';
 
 const app = express();
-const port = 3000;
+const port = 8000;
 
 dotenv.config();
-process.env.TOKEN_SECRET;
+
+const saltRounds = 10;
+const salt = bcrypt.genSaltSync(saltRounds);
+
+// expressOasGenerator.init(app, {});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -30,41 +36,33 @@ function authenticateToken(req, res, next) {
 
 // validation //
 
-// id validation
-const userExists = async (id: string) => {
-  const user = await AppDataSource.manager.findOneBy(User, { id: id })
-  if(!user){
-    throw new Error('User not found');
-  }
-  return true;
-}
-const idValidation = () => body('id').trim().notEmpty().escape().isUUID().custom(userExists);
-
 // name validation
 const nameValidation = () => body('name').trim().notEmpty().escape();
 
 const emailValidation = (crudop: string = 'create') => {
-  let emailIsUnique;
   if(crudop === 'create'){
-    emailIsUnique = async (email: string) => {
+    const emailIsUnique = async (email: string) => {
       const user = await AppDataSource.manager.findOneBy(User, { email: email });
       if(user){
         throw new Error('Email must be unique');
       }
     };
+    return body('email').trim().notEmpty().escape().isEmail().custom(emailIsUnique);
   }
-  else if (crudop === 'update'){
-    emailIsUnique = async (email: string, { req }) => {
-      const user = await AppDataSource.manager.findOneBy(User, { email: email });
-      const user_id = req.body.id;
-      if(user && user.id != user_id){
-        throw new Error('Email must be unique');
+  else if (crudop === 'update' || crudop === 'delete'){
+    const emailExists = async (email: string) => {
+      const user = await AppDataSource.manager.findOneBy(User, { email: email })
+      if(!user){
+        throw new Error('User not found');
       }
-    };
-  }  
-  return body('email').trim().notEmpty().escape().isEmail().custom(emailIsUnique);
+      return true;
+    }
+    return body('email').trim().notEmpty().escape().isEmail().custom(emailExists);
+  }
+  else{
+    return body('email').trim().notEmpty().escape().isEmail();
+  }
 }
-// const emailValidation = () => body('email').trim().notEmpty().escape().isEmail();
 
 // password validation
 const passwordIsValid = (value: string) => {
@@ -93,8 +91,8 @@ const validate = (validations: ValidationChain[]) => {
 };
 
 const createValidations = [nameValidation(), emailValidation('create'), passwordValidation()]
-const updateValidations = [idValidation(), nameValidation(), emailValidation('update'), passwordValidation()]
-const deleteValidations = [idValidation()]
+const updateValidations = [nameValidation(), emailValidation('update'), passwordValidation()]
+const deleteValidations = [emailValidation('delete')]
 
 // endpoints //
 
@@ -121,7 +119,7 @@ app.post('/users/create', validate(createValidations), async (req, res) => {
   const newUser = new User()
   newUser.name = req.body.name
   newUser.email = req.body.email
-  newUser.password = req.body.password  
+  newUser.password = bcrypt.hashSync(req.body.password, salt);
 
   try{
     const user = await AppDataSource.manager.save(newUser)
@@ -136,52 +134,72 @@ app.post('/users/create', validate(createValidations), async (req, res) => {
 
 // update
 app.patch('/users/update', authenticateToken, validate(updateValidations), async (req, res) => {
-  const user_id = req.body.id;
+  const email = req.body.email;
   const updatedUser = {
     name: req.body.name,
     email: req.body.email,
-    password: req.body.password
+    password: bcrypt.hashSync(req.body.password, salt)
   }
 
   try{
-    await AppDataSource.getRepository(User).update({id: user_id}, updatedUser)
-    const user = await AppDataSource.manager.findOneBy(User, { id: user_id })
-    return res.status(200).json(user);
+    await AppDataSource.getRepository(User).update({email: email}, updatedUser)
+    const user = await AppDataSource.manager.findOneBy(User, { email: email })    
+    return res.status(200).json({ message: `User ${email} successfully updated`});
   }
   catch (error) {
     console.log("update", error)
-    return res.status(500).json({ error: `User ${user_id} not updated: `+ error });
+    return res.status(500).json({ error: `User ${email} not updated: `+ error });
   }
 });
 
 // delete
 app.delete('/users/delete', authenticateToken, validate(deleteValidations), async (req, res) => {
-  const user_id = req.body.id
+  const email = req.body.email
+  // const user = await AppDataSource.manager.findOneBy(User, { email: email });
+  // if(!user){
+  //   return res.status(401).send({ error: 'Email incorrect, please try again.'});
+  // }
   try{
-    await AppDataSource.getRepository(User).delete(user_id);  
-    return res.status(200).json({ message: `User ${user_id} successfully deleted`});
+    await AppDataSource.getRepository(User).delete({ email: email });
+    return res.status(200).json({ message: `User ${email} successfully deleted`});
   }
   catch (error) {
     console.log("delete", error)
-    return res.status(500).json({ error: `User ${user_id} not deleted: `+ error });
+    return res.status(500).json({ error: `User ${email} not deleted: `+ error });
   }
 });
 
 //login
-app.post('/login', async (req, res) => {
+app.post('/login', authenticateToken, async (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  const password = req.body.password
+
+  const user = await AppDataSource.manager.findOneBy(User, { email: email });
+  if(!user){
+    return res.status(401).send({ error: 'Email incorrect, please try again.'});
+  }
+
+  if (bcrypt.compareSync(password, user.password)) {
+    return res.status(200).send(`Welcome back, ${user.name}!`);
+  } else {
+    return res.status(401).send({ error: 'Password incorrect, please try again.'});
+  }
+
 });
+
+// db initialization //
 
 AppDataSource.initialize()
 .then(async () => {
   const users = await AppDataSource.getRepository(User).find({ order: { email: 'asc' } });
-  console.log("initialize users", users)
+  // console.log("initialize users", users)
 })
 .catch(error => {
-  console.log("initialize", error)
+  // console.log("initialize", error)
 });
 
-app.listen(port, () => {
+// app initialization //
+
+module.exports = app.listen(port, () => {
   return console.log(`Express is listening at http://localhost:${port}`);
 });

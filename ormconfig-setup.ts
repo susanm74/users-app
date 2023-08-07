@@ -6,10 +6,10 @@ dotenv.config();
 const config = {
   "type": "postgres",
   "host": "localhost",
-  "port": 5432,
-  "username": process.env.USERNAME,
-  "password": process.env.PASSWORD,
-  "database": process.env.DATABASE,
+  "port": Number(process.env.DB_PORT),
+  "username": process.env.DB_USR,
+  "password": process.env.DB_PWD,
+  "database": process.env.DB_NAME,
   "entities": ["src/entity/*.ts"],
   "synchronize": true
 }

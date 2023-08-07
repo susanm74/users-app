@@ -16,4 +16,4 @@ const config = {
 
 const configFile = 'ormconfig.json';
 fs.writeFileSync(configFile, JSON.stringify(config, null, 2));
-console.log(`${configFile} successfully configured!`);
+console.log(`${configFile} successfully configured`);

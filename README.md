@@ -38,3 +38,7 @@ Susan M Lister
 
 * v1
     * Final Submission
+
+## Known Issues
+* `npm run test` currently using a temporary workaround to prevent open handles keeping Jest from exiting
+* `npm run dev` currently not working

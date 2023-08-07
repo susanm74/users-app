@@ -1,0 +1,146 @@
+openapi: '3.1.0'
+info:
+  title: Users App API
+  description: a RESTful API that allows users to create, retrieve, update, and delete data on a PostgreSQL database
+  version: '1.0.0'
+servers:
+  - url: http://localhost:8000
+paths:
+  /:
+    get:
+      description: Home
+      responses:
+        '200':
+          description: OK
+  /login:  
+    post:
+      security:
+          - bearerAuth: []
+      description: Login as a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users:
+    get:
+      security:
+            - bearerAuth: []
+      description: List of users
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users/create:
+    post:
+      description: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users/update:
+    patch:
+      security:
+            - bearerAuth: []
+      description: Update a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /users/delete:
+    delete:
+      security:
+            - bearerAuth: []
+      description: Delete a user
+      parameters: 
+        - in: params
+          name: email
+          required: true
+          schema:
+            type: string      
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequestError:
+      description: Bad request or input validation error
+    UnauthorizedError:
+      description: JWT token is missing
+    ForbiddenError:
+      description: JWT token is invalid
+    InternalServerError:
+      description: Unexpected error
+
+security:
+  - bearerAuth: []

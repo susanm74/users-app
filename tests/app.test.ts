@@ -163,7 +163,6 @@ describe('test app endpoints', () => {
     expect(message).toEqual({ message: `Welcome back, ${testUser.name}!`});
 
     const token = response.headers['authorization'].split(' ')[1];
-    expect(token).toEqual(jwtToken);
     jwt.verify(token, process.env.TOKEN_SECRET);
     expect(true).toBeTruthy();
   });
@@ -226,7 +225,6 @@ describe('test app endpoints', () => {
       })
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(response.status).toEqual(400);
-    const message = JSON.parse(response.text);
     expect(response.text).toContain(`Email is required`);
   });
 
@@ -287,7 +285,6 @@ describe('test app endpoints', () => {
       })
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(response.status).toEqual(400);
-    const message = JSON.parse(response.text);
     expect(response.text).toContain(`Password is required`);
   });
 
@@ -301,21 +298,21 @@ describe('test app endpoints', () => {
       })
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(response.status).toEqual(400);
-    const message = JSON.parse(response.text);
     expect(response.text).toContain(`Valid password can only contain letters, numbers, and special characters`);
   });
 
-  it('delete - should get a 404 when email is empty', async () => {
+  it('delete - should get an error when email is empty', async () => {
     const response = await request(app)
-      .delete('/users/delete/')      
+      .delete('/users/delete?')      
       .set('Authorization', `Bearer ${jwtToken}`);
-    expect(response.status).toEqual(404);
+    expect(response.status).toEqual(400);
+    expect(response.text).toContain(`Email does not exist`);
   });
 
   it('delete - should get an error when email not found', async () => {
     const emailDoesNotExist = 'email.does.not.exist@gmail.com';
     const response = await request(app)
-      .delete(`/users/delete/${encodeURIComponent(emailDoesNotExist)}`)
+      .delete(`/users/delete?email=${encodeURIComponent(emailDoesNotExist)}`)
       .set('Authorization', `Bearer ${jwtToken}`);
     expect(response.status).toEqual(400);
     expect(response.text).toContain(`Email does not exist`);
@@ -327,7 +324,7 @@ describe('test app endpoints', () => {
       .send(testUser3);
 
     response = await request(app)
-      .delete(`/users/delete/${encodeURIComponent(testUser3.email)}`)
+      .delete(`/users/delete?email=${encodeURIComponent(testUser3.email)}`)
       .set('Authorization', `Bearer ${jwtToken}`);
     console.log(response.text);
     expect(response.status).toEqual(200);

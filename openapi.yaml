@@ -110,7 +110,7 @@ paths:
             - bearerAuth: []
       description: Delete a user
       parameters: 
-        - in: params
+        - in: query
           name: email
           required: true
           schema:

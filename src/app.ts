@@ -1,5 +1,5 @@
 import express from 'express';
-import { body, validationResult, ValidationChain, param } from 'express-validator';
+import { body, validationResult, ValidationChain, query } from 'express-validator';
 import { AppDataSource } from "./app-data-source";
 import { User } from "./entity/User";
 import jwt from 'jsonwebtoken';
@@ -25,14 +25,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // authentication //
 
-const authenticateToken = (req, res, next): any => {
+const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]  
   if (token == null){
     // console.log("unauthorized")
     return res.status(401).json({ error: 'Unauthorized'}); // unauthorized
   } 
-  jwt.verify(token, process.env.TOKEN_SECRET as string, (err: any, user: any) => {
+  jwt.verify(token, process.env.TOKEN_SECRET as string, (err: any, user: any): any => {
     if (err){
       // console.log("forbidden", err)
       return res.status(403).json({ error: 'Forbidden'}); // forbidden
@@ -69,7 +69,7 @@ const emailValidation = (action: string = 'create') => {
     }
 
     if(action === 'delete'){
-      return param('email').trim().notEmpty().withMessage('Email is required').escape()
+      return query('email').trim().notEmpty().withMessage('Email is required').escape()
       .isEmail().withMessage('Valid email format is required').custom(emailExists);
     }
     else{
@@ -190,11 +190,8 @@ app.patch('/users/update', authenticateToken, validate(updateValidations), async
 });
 
 // delete //
-app.delete('/users/delete/:email', authenticateToken, validate(deleteValidations), async (req, res) => {
-  console.log(req.params);
-  console.log(req.params.email);
-  console.log(req.params.email.toString());
-  const email = req.params.email.toString()  
+app.delete('/users/delete', authenticateToken, validate(deleteValidations), async (req, res) => {
+  const email = req.query.email.toString()  
   try{
     await AppDataSource.getRepository(User).delete({ email: email });
     return res.status(200).json({ message: `User ${email} successfully deleted`});

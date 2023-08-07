@@ -28,7 +28,7 @@ a RESTful API that allows users to create, retrieve, update, and delete data in 
 
 * Edit the database settings inside the `.env` file - ex. usr: test, pwd: test, db: test_db
 * Run `npm run test` command
-* Navigate to http://localhost:8080/api-docs/ for usage, options, and a list of available APIs
+* Navigate to http://localhost:8080/v1/api-spec/ for usage, options, and a list of available APIs
 
 ## Author
 

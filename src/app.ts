@@ -12,7 +12,6 @@ dotenv.config();
 
 const app = express();
 const port = Number(process.env.APP_PORT) || 3000;
-console.log('port', port);
 
 const saltRounds = 10;
 const salt = bcrypt.genSaltSync(saltRounds);
@@ -29,12 +28,10 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]  
   if (token == null){
-    // console.log("unauthorized")
     return res.status(401).json({ error: 'Unauthorized'}); // unauthorized
   } 
   jwt.verify(token, process.env.TOKEN_SECRET as string, (err: any, user: any): any => {
     if (err){
-      // console.log("forbidden", err)
       return res.status(403).json({ error: 'Forbidden'}); // forbidden
     }    
     req.user = user

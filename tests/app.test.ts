@@ -326,7 +326,6 @@ describe('test app endpoints', () => {
     response = await request(app)
       .delete(`/users/delete?email=${encodeURIComponent(testUser3.email)}`)
       .set('Authorization', `Bearer ${jwtToken}`);
-    console.log(response.text);
     expect(response.status).toEqual(200);
     const message = JSON.parse(response.text);
     expect(message).toEqual({ message: `User ${testUser3.email} successfully deleted`});
